@@ -48,3 +48,68 @@ ggplot(income_tx) +
   )
 
 ```
+
+
+```{r}
+#| message: false
+
+edu_state <- get_acs(
+  geography = "state",
+  variables = c(
+    total = "B15003_001",
+    bachelors = "B15003_022",
+    masters = "B15003_023",
+    professional = "B15003_024",
+    doctorate = "B15003_025"
+  ),
+  summary_var = "B15003_001",
+  year = 2020
+)
+```
+
+
+
+
+
+
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+
+edu_state %>%
+  filter(variable %in% c(
+    "bachelors",
+    "masters",
+    "professional",
+    "doctorate"
+  )) %>%
+  group_by(GEOID, NAME) %>%
+  summarize(
+    percent_bachelors_higher =
+      sum(estimate, na.rm = TRUE) / first(summary_est),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(
+    x = percent_bachelors_higher,
+    y = reorder(NAME, percent_bachelors_higher)
+  )) +
+  geom_col(fill = "steelblue", width = 0.7) +
+  scale_x_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    name = "Adults with a bachelor's degree or higher",
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  labs(
+    title = "Educational Attainment by State",
+    subtitle = "Percentage of adults with a bachelor's degree or higher, 2020",
+    y = NULL,
+    caption = "Source: U.S. Census Bureau, 2020 American Community Survey"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 9)
+  )
+```
